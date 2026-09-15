@@ -1,0 +1,21 @@
+# Laravel
+backend/.env
+backend/vendor/
+backend/node_modules/
+
+# Laravel runtime
+backend/storage/logs/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+
+# React / Node
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
