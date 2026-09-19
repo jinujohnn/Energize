@@ -1,18 +1,20 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\Asset;
-use App\Http\Requests\StoreAssetRequest;
-use App\Models\Project;
+
+use App\Http\Requests\StoreEnergyReadingRequest;
+use App\Models\EnergyReading;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Http\Requests\UpdateAssetRequest;
+use App\Http\Requests\UpdateEnergyReadingRequest;
 
-class AssetController extends Controller
+
+class EnergyReadingController extends Controller
 {
     public function store(
-        StoreAssetRequest $request,
-        int $project
+        StoreEnergyReadingRequest $request,
+        int $project,
+        int $asset
     ): JsonResponse {
 
         $project = $request->user()
@@ -25,18 +27,27 @@ class AssetController extends Controller
             ], 404);
         }
 
-        $asset = $project->assets()->create(
+        $asset = $project->assets()->find($asset);
+
+        if (!$asset) {
+            return response()->json([
+                'message' => 'Asset not found',
+            ], 404);
+        }
+
+        $reading = $asset->energyReadings()->create(
             $request->validated()
         );
 
         return response()->json([
-            'message' => 'Asset created successfully',
-            'asset' => $asset,
+            'message' => 'Energy reading created successfully',
+            'reading' => $reading,
         ], 201);
     }
     public function index(
-        Request $request,
-        int $project
+    Request $request,
+    int $project,
+    int $asset
     ): JsonResponse {
 
         $project = $request->user()
@@ -49,18 +60,27 @@ class AssetController extends Controller
             ], 404);
         }
 
-        $assets = $project->assets()
-            ->latest()
+        $asset = $project->assets()->find($asset);
+
+        if (!$asset) {
+            return response()->json([
+                'message' => 'Asset not found',
+            ], 404);
+        }
+
+        $readings = $asset->energyReadings()
+            ->latest('recorded_at')
             ->get();
 
         return response()->json([
-            'assets' => $assets,
+            'readings' => $readings,
         ]);
     }
     public function show(
     Request $request,
     int $project,
-    int $asset
+    int $asset,
+    int $reading
     ): JsonResponse {
 
         $project = $request->user()
@@ -81,14 +101,23 @@ class AssetController extends Controller
             ], 404);
         }
 
+        $reading = $asset->energyReadings()->find($reading);
+
+        if (!$reading) {
+            return response()->json([
+                'message' => 'Energy reading not found',
+            ], 404);
+        }
+
         return response()->json([
-            'asset' => $asset,
+            'reading' => $reading,
         ]);
     }
     public function update(
-    UpdateAssetRequest $request,
-    int $project,
-    int $asset
+        UpdateEnergyReadingRequest $request,
+        int $project,
+        int $asset,
+        int $reading
     ): JsonResponse {
 
         $project = $request->user()
@@ -109,17 +138,26 @@ class AssetController extends Controller
             ], 404);
         }
 
-        $asset->update($request->validated());
+        $reading = $asset->energyReadings()->find($reading);
+
+        if (!$reading) {
+            return response()->json([
+                'message' => 'Energy reading not found',
+            ], 404);
+        }
+
+        $reading->update($request->validated());
 
         return response()->json([
-            'message' => 'Asset updated successfully',
-            'asset' => $asset->fresh(),
+            'message' => 'Energy reading updated successfully',
+            'reading' => $reading->fresh(),
         ]);
     }
     public function destroy(
     Request $request,
     int $project,
-    int $asset
+    int $asset,
+    int $reading
     ): JsonResponse {
 
         $project = $request->user()
@@ -140,32 +178,18 @@ class AssetController extends Controller
             ], 404);
         }
 
-        $asset->delete();
+        $reading = $asset->energyReadings()->find($reading);
+
+        if (!$reading) {
+            return response()->json([
+                'message' => 'Energy reading not found',
+            ], 404);
+        }
+
+        $reading->delete();
 
         return response()->json([
-            'message' => 'Asset deleted successfully',
+            'message' => 'Energy reading deleted successfully',
         ]);
     }
-
-    public function allAssets(
-        Request $request
-    ): JsonResponse {
-
-        $assets = Asset::whereHas('project', function ($query) use ($request) {
-
-            $query->where(
-                'user_id',
-                $request->user()->id
-            );
-
-        })
-        ->with('project:id,name')
-        ->latest()
-        ->get();
-
-        return response()->json([
-            'assets' => $assets,
-        ]);
-    }
-
 }

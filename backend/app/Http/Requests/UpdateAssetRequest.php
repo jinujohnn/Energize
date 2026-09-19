@@ -2,28 +2,42 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateAssetRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+            'name' => ['sometimes', 'string', 'max:255'],
+
+            'type' => [
+                'sometimes',
+                'in:solar_panel,inverter,battery,wind_turbine,other'
+            ],
+
+            'status' => [
+                'sometimes',
+                'in:operational,maintenance,offline'
+            ],
+
+            'location' => ['nullable', 'string', 'max:255'],
+
+            'capacity' => [
+                'nullable',
+                'numeric',
+                'min:0'
+            ],
+
+            'last_maintenance_at' => [
+                'nullable',
+                'date'
+            ],
         ];
     }
 }
